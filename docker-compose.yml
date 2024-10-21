@@ -25,7 +25,7 @@ services:
   traefik:
     image: traefik:v2.11
     configs:
-      - source: traefik-yml
+      - source: traefik-yml_2024-10-22T06-42
         target: /etc/traefik/traefik.yml
     ports:
       - target: 443
@@ -68,7 +68,7 @@ volumes:
   letsencrypt:
     
 configs:
-  traefik-yml:
+  traefik-yml_2024-10-22T06-42:
     file: traefik/traefik.yml
 
 networks:
