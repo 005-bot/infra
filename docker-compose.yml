@@ -23,10 +23,12 @@ services:
           - node.role == manager
 
   traefik:
-    image: traefik:v2.11
+    image: traefik:v3
     configs:
-      - source: traefik-yml_2024-10-22T06-42
+      - source: traefik.yml
         target: /etc/traefik/traefik.yml
+      - source: dynamic.yml
+        target: /etc/traefik/dynamic.yml
     ports:
       - target: 443
         published: 443
@@ -36,7 +38,9 @@ services:
         published: 80
         protocol: tcp
         mode: host
-
+    secrets:
+      - cloudflare.crt
+      - cloudflare.key
     volumes:
       - "letsencrypt:/letsencrypt"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
@@ -45,10 +49,11 @@ services:
     deploy:
       labels:
         - "traefik.enable=true"
-        - "traefik.docker.network=public"
+        - "traefik.swarm.network=public"
         - "traefik.http.middlewares.dashboard-auth.basicauth.users=${DASHBOARD_AUTH}"
-        - "traefik.http.routers.dashboard.rule=Host(`xn--g1ah2bza.xn--005-ddd9dya.xn--p1ai`)"
+        - "traefik.http.routers.dashboard.rule=Host(`xn--80aimpg.${ROOT_DOMAIN}`)"
         - "traefik.http.routers.dashboard.entrypoints=https"
+        - "traefik.http.routers.dashboard.tls=true"
         - "traefik.http.routers.dashboard.tls.certresolver=le"
         - "traefik.http.routers.dashboard.service=api@internal"
         - "traefik.http.routers.dashboard.middlewares=dashboard-auth"
@@ -68,8 +73,20 @@ volumes:
   letsencrypt:
     
 configs:
-  traefik-yml_2024-10-22T06-42:
+  traefik.yml:
+    name: traefik.yml_${STACK_VERSION:-0}
     file: traefik/traefik.yml
+  dynamic.yml:
+    name: dynamic.yml_${STACK_VERSION:-0}
+    file: traefik/dynamic.yml
+
+secrets:
+  cloudflare.crt:
+    name: cloudflare.crt
+    external: true
+  cloudflare.key:
+    name: cloudflare.key
+    external: true
 
 networks:
   internal:
