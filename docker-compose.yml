@@ -22,6 +22,35 @@ services:
         constraints:
           - node.role == manager
 
+  redis-commander:
+    image: ghcr.io/joeferner/redis-commander:latest
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    user: redis
+    networks:
+      - internal
+      - public
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=public"
+        - "traefik.http.middlewares.redis-commander-auth.basicauth.usersfile=/run/secrets/users.htpasswd"
+        - "traefik.http.routers.redis-commander.rule=Host(`xn--d1abk3ai.${ROOT_DOMAIN}`)"
+        - "traefik.http.routers.redis-commander.entrypoints=https"
+        - "traefik.http.routers.redis-commander.tls=true"
+        - "traefik.http.routers.redis-commander.tls.certresolver=le"
+        - "traefik.http.routers.redis-commander.middlewares=redis-commander-auth"
+        - "traefik.http.services.redis-commander.loadbalancer.server.port=8081"
+      replicas: 1
+      resources:
+        reservations:
+          memory: 32M
+        limits:
+          memory: 64M
+      placement:
+        constraints:
+          - node.role == manager
+
   traefik:
     image: traefik:v3
     configs:
@@ -41,6 +70,7 @@ services:
     secrets:
       - cloudflare.crt
       - cloudflare.key
+      - users.htpasswd
     volumes:
       - "letsencrypt:/letsencrypt"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
@@ -50,7 +80,7 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.swarm.network=public"
-        - "traefik.http.middlewares.dashboard-auth.basicauth.users=${DASHBOARD_AUTH}"
+        - "traefik.http.middlewares.dashboard-auth.basicauth.usersfile=/run/secrets/users.htpasswd"
         - "traefik.http.routers.dashboard.rule=Host(`xn--80aimpg.${ROOT_DOMAIN}`)"
         - "traefik.http.routers.dashboard.entrypoints=https"
         - "traefik.http.routers.dashboard.tls=true"
@@ -86,6 +116,9 @@ secrets:
     external: true
   cloudflare.key:
     name: cloudflare.key
+    external: true
+  users.htpasswd:
+    name: users.htpasswd
     external: true
 
 networks:
