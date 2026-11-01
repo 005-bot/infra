@@ -1,0 +1,62 @@
+services:
+  bot:
+    image: ghcr.io/005-bot/tg-bot-go:latest
+    environment:
+      - "TZ=${TIMEZONE:-UTC}"
+      - ADMIN__TELEGRAM_ID=${BOT__ADMIN_TELEGRAM_ID}
+      - HTTP__ADDRESS=0.0.0.0:3000
+      - HTTP__PROXY_HEADER=${HTTP__PROXY_HEADER:-X-Forwarded-For}
+      - HTTP__PROXIES=${HTTP__PROXIES:-[]}
+      - REDIS__PREFIX=monitor
+      - REDIS__URL=redis://redis:6379
+      - TELEGRAM__MODE=webhook
+      - TELEGRAM__TOKEN=${BOT__TELEGRAM_TOKEN}
+    networks:
+      - internal
+      - public
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "-q",
+          "-O",
+          "/dev/null",
+          "http://127.0.0.1:3000/health",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      replicas: 1
+      update_config:
+        order: start-first
+        monitor: 2m
+        failure_action: rollback
+      rollback_config:
+        order: start-first
+        monitor: 10s
+      restart_policy:
+        condition: any
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+      labels:
+        - "prometheus.enabled=true"
+        - "prometheus.port=3000"
+        - "traefik.enable=true"
+        - "traefik.swarm.network=public"
+        - "traefik.http.routers.bot-webhook.rule=Host(`xn--90abjv8bl.${ROOT_DOMAIN}`)"
+        - "traefik.http.routers.bot-webhook.entrypoints=https"
+        - "traefik.http.routers.bot-webhook.tls=true"
+        - "traefik.http.routers.bot-webhook.tls.certresolver=le"
+        - "traefik.http.services.bot-webhook.loadbalancer.server.port=3000"
+
+networks:
+  internal:
+    external: true
+  public:
+    external: true
