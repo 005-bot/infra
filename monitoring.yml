@@ -76,7 +76,7 @@ services:
         - "traefik.docker.network=public"
         - "traefik.http.routers.grafana.rule=Host(`xn--h1ahddcmm.xn--005-ddd9dya.xn--p1ai`)"
         - "traefik.http.routers.grafana.entrypoints=https"
-        - "traefik.http.routers.grafana.tls.certresolver=le"
+        - "traefik.http.routers.grafana.tls.certresolver=cloudflare"
         - "traefik.http.services.grafana.loadbalancer.server.port=3000"
       restart_policy:
         condition: on-failure
