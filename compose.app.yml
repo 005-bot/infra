@@ -52,7 +52,7 @@ services:
         - "traefik.http.routers.bot-webhook.rule=Host(`xn--90abjv8bl.${ROOT_DOMAIN}`)"
         - "traefik.http.routers.bot-webhook.entrypoints=https"
         - "traefik.http.routers.bot-webhook.tls=true"
-        - "traefik.http.routers.bot-webhook.tls.certresolver=le"
+        - "traefik.http.routers.bot-webhook.tls.certresolver=cloudflare"
         - "traefik.http.services.bot-webhook.loadbalancer.server.port=3000"
 
 networks:

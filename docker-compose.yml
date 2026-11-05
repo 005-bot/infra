@@ -40,7 +40,7 @@ services:
         - "traefik.http.routers.redis-commander.rule=Host(`xn--d1abk3ai.${ROOT_DOMAIN}`)"
         - "traefik.http.routers.redis-commander.entrypoints=https"
         - "traefik.http.routers.redis-commander.tls=true"
-        - "traefik.http.routers.redis-commander.tls.certresolver=le"
+        - "traefik.http.routers.redis-commander.tls.certresolver=cloudflare"
         - "traefik.http.routers.redis-commander.middlewares=redis-commander-auth"
         - "traefik.http.services.redis-commander.loadbalancer.server.port=8081"
       replicas: 1
@@ -70,9 +70,12 @@ services:
         protocol: tcp
         mode: host
     secrets:
+      - cloudflare.token
       - cloudflare.crt
       - cloudflare.key
       - users.htpasswd
+    environment:
+      - "CF_DNS_API_TOKEN_FILE=/run/secrets/cloudflare.token"
     volumes:
       - "letsencrypt:/letsencrypt"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
@@ -86,7 +89,7 @@ services:
         - "traefik.http.routers.dashboard.rule=Host(`xn--80aimpg.${ROOT_DOMAIN}`)"
         - "traefik.http.routers.dashboard.entrypoints=https"
         - "traefik.http.routers.dashboard.tls=true"
-        - "traefik.http.routers.dashboard.tls.certresolver=le"
+        - "traefik.http.routers.dashboard.tls.certresolver=cloudflare"
         - "traefik.http.routers.dashboard.service=api@internal"
         - "traefik.http.routers.dashboard.middlewares=dashboard-auth"
         - "traefik.http.services.dashboard.loadbalancer.server.port=8080"
@@ -113,6 +116,9 @@ configs:
     file: traefik/dynamic.yml
 
 secrets:
+  cloudflare.token:
+    name: cloudflare.token
+    external: true
   cloudflare.crt:
     name: cloudflare.crt
     external: true

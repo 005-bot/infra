@@ -62,6 +62,15 @@ certificatesResolvers:
       # Optional (but recommended)
       #
       tlsChallenge: {}
+  cloudflare:
+    acme:
+      email: "admin@xn--005-ddd9dya.xn--p1ai"
+      storage: "/letsencrypt/cloudflare.json"
+      dnsChallenge:
+        provider: cloudflare
+        resolvers:
+          - "1.1.1.1:53"
+          - "8.8.8.8:53"
 
 # API and dashboard configuration
 api:
