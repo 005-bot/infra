@@ -71,8 +71,6 @@ services:
         mode: host
     secrets:
       - cloudflare.token
-      - cloudflare.crt
-      - cloudflare.key
       - users.htpasswd
     environment:
       - "CF_DNS_API_TOKEN_FILE=/run/secrets/cloudflare.token"
@@ -106,7 +104,7 @@ services:
 volumes:
   redis-data:
   letsencrypt:
-    
+
 configs:
   traefik.yml:
     name: traefik.yml_${STACK_VERSION:-0}
@@ -118,12 +116,6 @@ configs:
 secrets:
   cloudflare.token:
     name: cloudflare.token
-    external: true
-  cloudflare.crt:
-    name: cloudflare.crt
-    external: true
-  cloudflare.key:
-    name: cloudflare.key
     external: true
   users.htpasswd:
     name: users.htpasswd
